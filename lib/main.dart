@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:shopping_list/widgets/groceries_list.dart';
 
 final theme = ThemeData.dark().copyWith(
     colorScheme: ColorScheme.fromSeed(
@@ -18,7 +19,9 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      home: const Scaffold(),
+      home: const GroceriesList(
+        title: 'Groceries List',
+      ),
       theme: theme,
     );
   }
