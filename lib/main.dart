@@ -19,9 +19,7 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      home: const GroceriesList(
-        title: 'Groceries List',
-      ),
+      home: const GroceriesList(),
       theme: theme,
     );
   }
