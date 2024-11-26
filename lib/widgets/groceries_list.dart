@@ -15,12 +15,12 @@ class _GroceriesListState extends State<GroceriesList> {
 
   void _addNewItem() async {
     await Navigator.of(context)
-        .push(MaterialPageRoute(builder: (ctx) => const NewItem()))
-        .then((value) {
+        .push(MaterialPageRoute(builder: (ctx) => const NewItem()));
+    /*.then((value) {
       setState(() {
         _groceryItems.add(value);
       });
-    });
+    });*/
   }
 
   @override
