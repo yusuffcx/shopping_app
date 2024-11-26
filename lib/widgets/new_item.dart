@@ -25,7 +25,7 @@ class NewItemState extends State<NewItem> {
       _formKey.currentState!.save();
       final url = Uri.https('flutter-prep-c7f95-default-rtdb.firebaseio.com',
           'shopping-list.json');
-      http.post(url,
+      final resp = await http.post(url,
           headers: {'Content-Type': 'application/json'},
           body: json.encode(
             {
@@ -34,12 +34,13 @@ class NewItemState extends State<NewItem> {
               'quantity': _enteredQuantity,
             },
           ));
-
-      Navigator.of(context).pop(GroceryItem(
-          category: selectedCategory,
-          id: DateTime.now().toString(),
-          name: _enteredName,
-          quantity: _enteredQuantity));
+      print(resp.body);
+      if (!context
+          .mounted) // eğer widget artık yoksa false döner. bu if döngüsünde widget artık yoksa direkt çıkar pop yapmaz.
+      {
+        return;
+      }
+      Navigator.of(context).pop();
     }
   }
 
