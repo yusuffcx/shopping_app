@@ -3,7 +3,6 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:shopping_list/data/categories.dart';
 import 'package:shopping_list/models/category.dart';
-import 'package:shopping_list/models/grocery_item.dart';
 import 'package:http/http.dart' as http;
 
 class NewItem extends StatefulWidget {
@@ -16,13 +15,18 @@ class NewItem extends StatefulWidget {
 }
 
 class NewItemState extends State<NewItem> {
+  var isLoading = false;
   var _enteredName = '';
   var _enteredQuantity = 1;
   var selectedCategory = categories[Categories.dairy]!;
   final _formKey = GlobalKey<FormState>();
+
   void _addItem() async {
     if (_formKey.currentState!.validate()) {
       _formKey.currentState!.save();
+      setState(() {
+        isLoading = true;
+      });
       final url = Uri.https('flutter-prep-c7f95-default-rtdb.firebaseio.com',
           'shopping-list.json');
       final resp = await http.post(url,
@@ -128,12 +132,21 @@ class NewItemState extends State<NewItem> {
                 mainAxisAlignment: MainAxisAlignment.end,
                 children: [
                   TextButton(
-                      onPressed: () {
-                        _formKey.currentState!.reset();
-                      },
+                      onPressed: isLoading
+                          ? null
+                          : () {
+                              _formKey.currentState!.reset();
+                            },
                       child: const Text('Reset')),
                   ElevatedButton(
-                      onPressed: _addItem, child: const Text('Add Item'))
+                      onPressed: isLoading ? null : _addItem,
+                      child: isLoading
+                          ? const SizedBox(
+                              width: 16,
+                              height: 16,
+                              child: CircularProgressIndicator(),
+                            )
+                          : const Text('Add Item'))
                 ],
               )
             ],

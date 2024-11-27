@@ -15,6 +15,7 @@ class GroceriesList extends StatefulWidget {
 }
 
 class _GroceriesListState extends State<GroceriesList> {
+  var isLoading = true;
   List<GroceryItem> _groceryItems = [];
   @override
   void initState() {
@@ -23,18 +24,18 @@ class _GroceriesListState extends State<GroceriesList> {
   }
 
   void _loadItems() async {
-    List<GroceryItem> _loadedItems = [];
+    final List<GroceryItem> _loadedItems = [];
     final url = Uri.https(
         'flutter-prep-c7f95-default-rtdb.firebaseio.com', 'shopping-list.json');
-    final resp = await http.get(url);
-    print(resp.body);
-    final Map<String, dynamic> items = jsonDecode(resp.body);
-    print(items);
+    final response = await http.get(url);
+    print(response.body);
+    //print(categories[Categories.carbs]);
+    final Map<String, dynamic> items = json.decode(response.body);
     for (var item in items.entries) {
-      print(item);
-      final category = categories.entries.firstWhere((it) {
-        return it.value.title == item.value['category'];
-      }).value;
+      final category = categories.entries
+          .firstWhere((it) => item.value['category'] == it.value.title)
+          .value;
+      // item.value['category']
       _loadedItems.add(GroceryItem(
           category: category,
           id: item.key,
@@ -43,6 +44,7 @@ class _GroceriesListState extends State<GroceriesList> {
     }
     setState(() {
       _groceryItems = _loadedItems;
+      isLoading = false;
     });
   }
 
@@ -95,6 +97,8 @@ class _GroceriesListState extends State<GroceriesList> {
                 icon: const Icon(Icons.add_circle_rounded))
           ],
         ),
-        body: activeWidget);
+        body: isLoading
+            ? const Center(child: CircularProgressIndicator())
+            : activeWidget);
   }
 }
