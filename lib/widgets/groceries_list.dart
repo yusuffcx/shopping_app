@@ -15,6 +15,7 @@ class GroceriesList extends StatefulWidget {
 }
 
 class _GroceriesListState extends State<GroceriesList> {
+  var error = '';
   var isLoading = true;
   List<GroceryItem> _groceryItems = [];
   @override
@@ -27,25 +28,36 @@ class _GroceriesListState extends State<GroceriesList> {
     final List<GroceryItem> _loadedItems = [];
     final url = Uri.https(
         'flutter-prep-c7f95-default-rtdb.firebaseio.com', 'shopping-list.json');
-    final response = await http.get(url);
-    print(response.body);
-    //print(categories[Categories.carbs]);
-    final Map<String, dynamic> items = json.decode(response.body);
-    for (var item in items.entries) {
-      final category = categories.entries
-          .firstWhere((it) => item.value['category'] == it.value.title)
-          .value;
-      // item.value['category']
-      _loadedItems.add(GroceryItem(
-          category: category,
-          id: item.key,
-          name: item.value['name'],
-          quantity: item.value['quantity']));
+    try {
+      final response = await http.get(url);
+
+      if (response.statusCode >= 400) {
+        throw Error();
+      }
+      final Map<String, dynamic> items = json.decode(response.body);
+      for (var item in items.entries) {
+        final category = categories.entries
+            .firstWhere((it) => item.value['category'] == it.value.title)
+            .value;
+        // item.value['category']
+        _loadedItems.add(GroceryItem(
+            category: category,
+            id: item.key,
+            name: item.value['name'],
+            quantity: item.value['quantity']));
+      }
+
+      setState(() {
+        _groceryItems = _loadedItems;
+        isLoading = false;
+      });
+    } catch (err) {
+      setState(() {
+        isLoading = false;
+        error = 'Failed to fetch data. Try again later.';
+      });
+      return;
     }
-    setState(() {
-      _groceryItems = _loadedItems;
-      isLoading = false;
-    });
   }
 
   void _addNewItem() async {
@@ -54,27 +66,39 @@ class _GroceriesListState extends State<GroceriesList> {
     _loadItems();
   }
 
+  void removeItem(GroceryItem item) async {
+    final index = _groceryItems.indexOf(item);
+    setState(() {
+      _groceryItems.remove(item);
+    });
+
+    final url = Uri.https('flutter-prep-c7f95-default-rtdb.firebaseio.com',
+        'shopping-list/${item.id}.json');
+    final resp = await http.delete(url);
+    print(resp.statusCode);
+    if (resp.statusCode >= 400) {
+      setState(() {
+        _groceryItems.insert(index, item);
+      });
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
-    Widget activeWidget = _groceryItems.isEmpty
+    Widget activeWidget;
+    activeWidget = _groceryItems.isEmpty
         ? const Center(child: Text('There is no List to display'))
         : ListView.builder(
             itemCount: _groceryItems.length,
             itemBuilder: (context, int index) => InkWell(
               onTap: () {},
-              child: Slidable(
-                startActionPane:
-                    ActionPane(motion: const StretchMotion(), children: [
-                  SlidableAction(
-                    onPressed: (context) {
-                      setState(() {
-                        _groceryItems.removeAt(index);
-                      });
-                    },
-                    backgroundColor: Colors.red,
-                    icon: Icons.delete,
-                  )
-                ]),
+              child: Dismissible(
+                key: ValueKey(_groceryItems[index].id),
+                onDismissed: (direction) {
+                  setState(() {
+                    removeItem(_groceryItems[index]);
+                  });
+                },
                 child: ListTile(
                   leading: Container(
                     width: 24,
@@ -87,6 +111,9 @@ class _GroceriesListState extends State<GroceriesList> {
               ),
             ),
           );
+    if (error != '') {
+      activeWidget = Center(child: Text(error));
+    }
 
     return Scaffold(
         appBar: AppBar(
