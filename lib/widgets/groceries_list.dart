@@ -4,7 +4,6 @@ import 'package:flutter/material.dart';
 import 'package:shopping_list/data/categories.dart';
 import 'package:shopping_list/models/grocery_item.dart';
 import 'package:shopping_list/widgets/new_item.dart';
-import 'package:flutter_slidable/flutter_slidable.dart';
 import 'package:http/http.dart' as http;
 
 class GroceriesList extends StatefulWidget {
@@ -30,7 +29,7 @@ class _GroceriesListState extends State<GroceriesList> {
         'flutter-prep-c7f95-default-rtdb.firebaseio.com', 'shopping-list.json');
     try {
       final response = await http.get(url);
-
+      print(response.statusCode);
       if (response.statusCode >= 400) {
         throw Error();
       }
@@ -46,12 +45,18 @@ class _GroceriesListState extends State<GroceriesList> {
             name: item.value['name'],
             quantity: item.value['quantity']));
       }
-
       setState(() {
         _groceryItems = _loadedItems;
         isLoading = false;
       });
     } catch (err) {
+      if (_loadedItems.isEmpty) {
+        setState(() {
+          isLoading = false;
+          //error = 'No data in the database.';
+        });
+        return;
+      }
       setState(() {
         isLoading = false;
         error = 'Failed to fetch data. Try again later.';
