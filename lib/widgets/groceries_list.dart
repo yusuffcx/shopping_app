@@ -30,6 +30,8 @@ class _GroceriesListState extends State<GroceriesList> {
     try {
       final response = await http.get(url);
       print(response.statusCode);
+      print(response.body);
+      print(response);
       if (response.statusCode >= 400) {
         throw Error();
       }
